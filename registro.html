@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro Carpinsoft</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="top-bar">
+        <!--<div class="btn-menu" onclick="toggleMenu()">MENU</div>-->
+        <div class="title">CARPINSOFT</div> 
+    </div>
+    <!--
+    <div id="overlay" class="overlay" onclick="toggleMenu()"></div>
+
+    <div id="side-menu" class="side-menu">
+        <a href="inicio.html">Inicio</a>
+        <a href="materiales.html">Gestión de materiales</a>
+        <a href="pedidos.html">Gestión de pedidos</a>
+        <a href="clientes.html">Gestión de clientes</a>
+        <a href="reportes.html">Reportes</a>
+        <a href="configuracion.html">Configuración</a>
+    </div>
+    -->
+    <!-- contenedor de registro-->
+    <div class="register-container">
+            <h2>Registro de usuario</h2>
+
+            <label>Nombres</label>
+            <input type="text" id="nombres" class="input">
+
+            <label>Apellidos</label>
+            <input type="text" id="apellidos" class="input">
+
+            <label>Número de cédula</label>
+            <input type="text" id="cedula" class="input">
+
+            <label>Fecha de nacimiento</label>
+            <input type="date" id="fecha" class="input">
+
+            <!-- botones del contenedor -->
+            <div class="btn-group">
+                <button class="btn-registrar" onclick="registrarUsuario()">Registrar</button>
+                <button class="btn-cancelar" onclick="window.location.href='index.html'">Cancelar</button>
+            </div>
+    </div>
+
+    <div id="modal" class="modal">
+        <h3>!Error¡</h3>
+        <p id="mensaje-error"></p>
+        <button onclick="cerrarModal()">Aceptar</button>
+    </div>
+
+    <script>
+        function toggleMenu() {
+            const menu = document.getElementById("side-menu");
+            const overlay = document.getElementById("overlay");
+
+            if (menu.style.left === "0px") {
+                menu.style.left = "-200px";
+                overlay.style.display = "none";
+            } else {
+                menu.style.left = "0px";
+                overlay.style.display = "block";
+            }
+        }
+
+        function registrarUsuario() {
+            const nombres = document.getElementById("nombres").value.trim();
+            const apellidos = document.getElementById("apellidos").value.trim();
+            const cedula = document.getElementById("cedula").value.trim();
+            const fecha = document.getElementById("fecha").value.trim();
+
+            if ( nombres === "" || apellidos === "" || cedula === "" || fecha === "") {
+                mostrarError("Por favor llene todos los campos");
+                return
+            }
+
+            const soloLetras = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
+
+            if (!soloLetras.test(nombres)) {
+                mostrarError("El nombre solo debe contener letras");
+                return;
+            }
+
+            if (!soloLetras.test(apellidos)) {
+                mostrarError("El apellido solo debe contener letras");
+                return;
+            }
+
+            const soloNumeros = /^[0-9]+$/;
+
+            if (!soloNumeros.test(cedula)) {
+                mostrarError("La cédula solo debe contener números");
+                return;
+            }
+
+            if (cedula.length < 6) {
+                mostrarError("La cédula es demasiado corta");
+                return;
+            }
+
+            // validar 18 años 
+            const hoy = new Date();
+            const fechaNacimiento = new Date(fecha);
+
+            let edad = hoy.getFullYear() - fechaNacimiento.getFullYear();
+            const mes = hoy.getMonth() - fechaNacimiento.getMonth();
+
+            // ajustar si no ha cumplido años aun
+            if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNacimiento.getDate())) {
+                edad--;
+            }
+
+            if (edad < 18) {
+                mostrarError("Debe ser mayor de edad para registrarse");
+                return;
+            }
+
+            mostrarExito("Registro exitoso");
+
+            // limpiar formulario
+            limpiarFormulario();
+
+            // redirigir después de 2 segundos
+            setTimeout(() => {
+                window.location.href = "index.html";
+            }, 2000);
+
+        }
+
+        function mostrarExito(mensaje) {
+            document.getElementById("titulo-modal").innerText = "Éxito";
+            document.getElementById("mensaje-error").innerText = mensaje;
+            document.getElementById("modal").style.display = "block";
+        }
+
+        function limpiarFormulario() {
+            document.getElementById("nombres").value = "";
+            document.getElementById("apellidos").value = "";
+            document.getElementById("cedula").value = "";
+            document.getElementById("fecha").value = "";
+        }
+
+        function mostrarError(mensaje) {
+            document.getElementById("mensaje-error").innerText = mensaje;
+            document.getElementById("modal").style.display = "block";
+            document.getElementById("overlay").style.display = "block;"
+        }
+
+        function cerrarModal() {
+            document.getElementById("modal").style.display = "none";
+            document.getElementById("overlay").style.display = "none";
+        }
+
+        /* en el futuro
+        fetch("registro.php", {
+            method: "POST",
+            body: datos
+        });
+        */
+
+    </script>
+</body>
+</html>

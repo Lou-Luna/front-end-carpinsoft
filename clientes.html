@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Inicio - CarpinSoft</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="top-bar">
+        <div class="btn-menu" onclick="toggleMenu()">MENU</div>
+        <div class="title">CARPINSOFT</div> 
+    </div>
+
+    <div id="overlay" class="overlay" onclick="toggleMenu()"></div>
+
+    <div id="side-menu" class="side-menu">
+        <a href="inicio.html">Inicio</a>
+        <a href="materiales.html">Gestión de materiales</a>
+        <a href="pedidos.html">Gestión de pedidos</a>
+        <a href="clientes.html">Gestión de clientes</a>
+        <a href="reportes.html">Reportes</a>
+        <a href="configuracion.html">Configuración</a>
+    </div>
+
+    <h2>Gestión de clientes</h2>
+
+    <button onclick="abrirModal()">Agregar cliente</button>
+
+    <table border="1" widht="100%">
+        <thead>
+            <tr>
+                <th>Nombres</th>
+                <th>Apellidos</th>
+                <th>Teléfono</th>
+                <th>Dirección</th>
+                <th>Cédula</th>
+            </tr>
+        </thead>
+
+        <tbody id="tabla-clientes">
+
+        </tbody>
+    </table>
+
+    <div id="modal-cliente" class="modal">
+        <h3>Nuevo cliente</h3>
+        
+        <input type="text" id="nombre" placeholder="Nombres">
+        <input type="text" id="apellido" placeholder="Apellidos">
+        <input type="text" id="telefonoCliente" placeholder="Teléfono">
+        <input type="text" id="direccionCliente" placeholder="Dirección">
+        <input type="text" id="cedulaCliente" placeholder="Cédula">
+
+        <button onclick="guardarCliente()">Guardar</button>
+        <button onclick="cerrarModal()">Cancelar</button>
+    </div>
+
+    <div id="modal-error" class="modal">
+        <h3>!Error¡</h3>
+        <p id="mensaje-error"></p>
+        <button onclick="cerrarModal()">Aceptar</button>
+    </div>
+
+    <div id="modal-exito" class="modal">
+        <h3>!Aviso¡</h3>
+        <p id="mensaje-exito"></p>
+        <button onclick="cerrarModal()">Aceptar</button>
+    </div>
+
+    <script>
+
+        let filaEditando = null;
+
+        function toggleMenu() {
+            const menu = document.getElementById("side-menu");
+            const overlay = document.getElementById("overlay");
+
+            if (menu.style.left === "0px") {
+                menu.style.left = "-200px";
+                overlay.style.display = "none";
+            } else {
+                menu.style.left = "0px";
+                overlay.style.display = "block";
+            }
+        }
+
+        function guardarCliente() {
+            const nombre = document.getElementById("nombre").value.trim();
+            const apellido = document.getElementById("apellido").value.trim();
+            const telefono = document.getElementById("telefonoCliente").value.trim();
+            const direccion = document.getElementById("direccionCliente").value.trim ();
+            const cedula = document.getElementById("cedulaCliente").value.trim();
+
+            if (nombre === "" || apellido === "" || telefono === "" || direccion === "" || cedula === "") {
+                mostrarError("Debe llenar todos los datos");
+                return;
+            }
+            
+            const soloLetras = /^[a-zA-Z\s]+$/;
+            const soloNumeros = /^[0-9]+$/;
+
+            if (!soloLetras.test(nombre)) {
+                mostrarError("Nombre inválido");
+                return;
+            }
+
+            if (!soloLetras.test(apellido)) {
+                mostrarError("Apellido inválido");
+                return;
+            }
+
+            if (!soloNumeros.test(telefono)) {
+                mostrarError("Teléfono inválido");
+                return;
+            }
+
+            if (!soloNumeros.test(cedula)) {
+                mostrarError("Cédula inválida");
+                return;
+            }
+
+            if (filaEditando) {
+                filaEditando.children[0].innerText = nombre;
+                filaEditando.children[1].innerText = apellido;
+                filaEditando.children[2].innerText = telefono;
+                filaEditando.children[3].innerText = direccion;
+                filaEditando.children[4].innerText = cedula;
+
+                mostrarExito("Cliente actualizado correctamente");
+
+                filaEditando = null;
+
+            } else {
+                mostrarExito("Cliente agregado correctamente");
+                agregarFila(nombre, apellido, telefono, direccion, cedula);   
+            }
+
+            limpiarFormulario();
+            /*cerrarModal(); */
+
+        }
+
+        function agregarFila(nombre, apellido, telefono, direccion, cedula) {
+            const tabla = document.getElementById("tabla-clientes");
+
+            const fila = document.createElement("tr");
+
+            fila.innerHTML = `
+                <td>${nombre}</td>
+                <td>${apellido}</td>
+                <td>${telefono}</td>
+                <td>${direccion}</td>
+                <td>${cedula}</td>
+                <td>
+                    <button onclick="editarFila(this)">Editar</button>
+                    <button onclick="eliminarFila(this)">Eliminar</button>
+                </td>
+            `;
+
+            tabla.appendChild(fila);
+        }
+
+        function eliminarFila(boton) {
+            if (confirm("¿Desea eliminar este cliente?")) {
+
+                const fila = boton.parentNode.parentNode;
+
+                fila.remove();
+
+                mostrarExito("Cliente eliminado correctamente");
+            }
+        }
+
+        function editarFila(boton) {
+            filaEditando = boton.parentNode.parentNode;
+
+            const columnas = filaEditando.getElementsByTagName("td");
+
+            document.getElementById("nombre").value = columnas[0].innerText;
+            document.getElementById("apellido").value = columnas[1].innerText;
+            document.getElementById("telefonoCliente").value = columnas[2].innerText;
+            document.getElementById("direccionCliente").value = columnas[3].innerText;
+            document.getElementById("cedulaCliente").value = columnas[4].innerText;
+
+            abrirModal();
+        }
+
+        function limpiarFormulario() {
+            document.getElementById("nombre").value = "";
+            document.getElementById("apellido").value = "";
+            document.getElementById("telefonoCliente").value = "";
+            document.getElementById("direccionCliente").value = "";
+            document.getElementById("cedulaCliente").value = "";
+        }
+
+        function abrirModal() {
+            document.getElementById("modal-cliente").style.display = "block";
+        }
+
+        function cerrarModal() {
+            document.getElementById("modal-cliente").style.display = "none";
+            document.getElementById("modal-error").style.display = "none";
+            document.getElementById("modal-exito").style.display = "none";
+            document.getElementById("overlay").style.display = "none";
+        }
+
+        function mostrarExito(mensaje) {
+            document.getElementById("mensaje-exito").innerText = mensaje;
+            document.getElementById("modal-exito").style.display = "block";
+            document.getElementById("overlay").style.display = "block";
+        }
+
+        function mostrarError(mensaje) {
+            document.getElementById("mensaje-error").innerText = mensaje;
+            document.getElementById("modal-error").style.display = "block";
+            document.getElementById("overlay").style.display = "block";
+        }
+
+    </script>
+
+</body>
+</html>

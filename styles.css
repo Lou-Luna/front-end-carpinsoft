@@ -1,0 +1,355 @@
+body {
+    background-color: #EFEBE9;
+    font-family: 'Nunito', sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* inicio*/
+.top-bar {
+    background-color: #A1887F;
+    padding: 20px;
+    text-align: center;
+    color: white;
+    font-size: 26px;
+    font-weight: bold;
+}
+
+/* menu*/
+.btn-menu {
+    position: absolute;
+    left: 10px;
+    top: 18px;
+    background-color: #5D4037;
+    color: white;
+    padding: 10px 15px;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 4px;
+    z-index: 200;
+}
+
+.btn-menu:hover {
+    background-color: #4E342E;
+}
+
+.side-menu {
+    position: fixed;
+    width: 200px;
+    height: 100%;
+    background-color: #5D4037;
+    padding-top: 80px;
+    top: 0;
+    left: -200px;
+    transition: left 0.3s ease;
+    z-index: 100;
+}
+
+.side-menu a {
+    display: block;
+    color: white;
+    padding: 12px;
+    text-decoration: none;
+    font-size: 18px;
+    border-bottom: 1px solid #8D6E63;
+}
+
+.side-menu a:hover {
+    background-color: #4E342E;
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 4);
+    display: none;
+    z-index: 90;
+}
+
+.content {
+    margin: 40px auto;
+    max-width: 900px;
+    text-align: center;
+}
+
+.welcome {
+    text-align: center;
+    font-size: 26px;
+    font-weight: bold;
+    color: #5D4037;
+}
+
+.subtext {
+    font-size: 18px;
+    margin-bottom: 40px;
+    color: #6D4C41;
+}
+
+.card-container {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 25px;
+}
+
+.card {
+    background: white;
+    width: 200px;
+    padding: 20px;
+    border: 2px solid #A1887F;
+    border-radius: 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.3s;
+}
+       
+.card:hover {
+    background-color: #D7CCC8;
+    transform: translateY(-5px);
+}
+
+.card h3 {
+    margin: 0;
+    font-size: 18px;
+    color: #5D4037;
+}
+
+@media (max-width: 480px) {
+        .card {
+            width: 90%;
+        }
+}
+
+/* inicio de sesión*/ 
+/* logo */
+.logo {
+    text-align: center;
+    margin-top: 10px;
+    margin-bottom: 20px;
+}
+
+.logo img {
+    width: 140px;
+    height: auto;
+}
+
+/* formulario */
+.form-container {
+    width: 360px;
+    max-height: 200px;
+    margin: 0 auto;
+    color: #5D4037;
+    background-color: #E0E0E0;
+    padding: 25;
+    border: 1px solid #BDBDBD;
+    border-radius: 8px;
+    box-shadow:0x 3px 4px rgba(0,0,0,0.2);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    font-size: 20px;
+}
+
+.label {
+    display: block;
+    padding: 10px;
+    margin: 10px;
+    color: #5D4037;
+    font-weight: bold;
+    border: thin solid #A1887F;
+}
+
+.input {
+    width: 100%;
+    padding: 8px;
+    margin: 10px 0;
+    border-left: 1px solid #BDBDBD;
+    box-sizing: border-box;
+    background-color: white;
+    border: thin solid #A1887F;
+}
+
+/* boton */
+.login-btn {
+    width: 260px;
+    display: block;
+    margin: 25px auto 10px auto;
+    background-color: #5D4037;
+    color: white;
+    padding: 12px;
+    border: none;
+    font-size: 18px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+/* olvido contraseña */
+.forgot {
+    text-align: center;
+    margin-top: 10px;
+    color: #333;
+    font-size: 18px;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.newuser{
+    display: block;
+    text-align: center;
+    margin-top: 10px;
+    color: #333;
+    font-size: 18px;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+/* modal*/
+.modal {
+    position: fixed;
+    width: 300px;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    border: 2px solid #5D4037;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: none;
+    z-index: 200;
+    text-align: center;
+}
+
+@media (max-width: 480px) {
+            .register-container {
+            width: 90%;
+            }
+}
+
+/* registro */
+/*contenedor para el registro*/
+.register-container{
+    width: 350px;
+    background: white;
+    margin: 40px auto;
+    padding: 25px;
+    border-radius: 8px;
+    border: 2px solid #A1887F;
+}
+
+.register-container {
+    text-align: center;
+    color: #5D4037;
+    margin-top: 0;
+}
+
+.register-container {
+    width: 380px;
+    padding: 30px;
+}
+
+label {
+    display: block;
+    font-weight: bold;
+    margin-top: 10px;
+    color: #5D4037;
+}
+
+input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #A1887F;
+    border-radius: 4px;
+    margin-top: 5px;
+}
+
+/*botones del contenedor*/
+.btn-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.btn-registrar {
+    flex: 1;
+    padding: 10px;
+    background-color: #5D4037;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-cancelar {
+    flex: 1;
+    padding: 10px;
+    background-color: #5D4037;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.reporte-section {
+    margin: 30px;
+}
+
+.reporte-section h2 {
+    margin-bottom: 15px;
+    color: #6D4C41;
+}
+
+.tabla-reportes {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+}
+
+.tabla-reportes th,
+.tabla-reportes td {
+    border: 1px solid #A1887F;
+    padding: 10px;
+    text-align: center;
+}
+
+.tabla-reportes th {
+    background-color: #D7CCC8;
+}
+
+.stock-bajo {
+    color: red;
+    font-weight: bold;
+}
+
+.disponible {
+    color: green;
+    font-weight: bold;
+}
+
+.pendiente {
+    color: #E65100;
+    font-weight: bold;
+}
+
+.en-proceso {
+    color: #1565C0;
+    font-weight: bold;
+}
+
+.terminado {
+    color: #2E7D32;
+    font-weight: bold;
+}
+
+.entregado {
+    color: #6A1B9A;
+    font-weight: bold;
+}
+
+/*media query*/
+@media (max-width: 480px) {
+        .register-container {
+            width: 90%;
+        }
+}

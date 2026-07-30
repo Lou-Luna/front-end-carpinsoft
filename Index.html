@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>CarpinSoft - Iniciar Sesión</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="top-bar">
+        <!--<div class="btn-menu" onclick="toggleMenu()">MENU</div>-->
+        <div class="title">CARPINSOFT</div>
+    </div>
+    <!--
+    <div id="overlay" class="overlay" onclick="toggleMenu()"></div>
+
+    <div id="side-menu" class="side-menu">
+        <a href="inicio.html">Inicio</a>
+        <a href="materiales.html">Gestión de materiales</a>
+        <a href="pedidos.html">Gestión de pedidos</a>
+        <a href="clientes.html">Gestión de clientes</a>
+        <a href="reportes.html">Reportes</a>
+        <a href="configuracion.html">Configuración</a>
+    </div>
+    -->
+    <p class="welcome">Bienvenido, por favor inicia sesión para continuar</p>
+
+    <!-- logo -->
+    <div class="logo">
+        <img src="img/logo_carpinsoft.png" alt="CarpinSoft Logo">
+    </div>
+
+    <!-- contenedor de registro-->
+    <div class="form-container">
+        <label>Usuario</label>
+        <input type="text" id="usuario" class="input">
+
+        <label>Contraseña</label>
+        <input type="password" id="password" class="input">
+    </div>
+
+    <!-- botones -->
+    <button type="button" class="login-btn" onclick="iniciarSesion()">Ingresar</button>
+
+    <div class="forgot">¿Olvidó su contraseña?</div>
+
+    <a class="newuser" href="registro.html">Nuevo? Registrese</a>
+
+    <div id="modal" class="modal">
+        <h3>!Error¡</h3>
+        <p id="mensaje-error"></p>
+        <button onclick="cerrarModal()">Aceptar</button>
+    </div>
+
+    <script>
+        function toggleMenu() {
+            const menu = document.getElementById("side-menu");
+            const overlay = document.getElementById("overlay");
+
+            if (menu.style.left === "0px") {
+                menu.style.left = "-200px";
+                overlay.style.display = "none";
+            } else {
+                menu.style.left = "0px";
+                overlay.style.display = "block";
+            }
+        }
+
+        function iniciarSesion() {
+            const user = document.getElementById("usuario").value.trim();
+            const pass = document.getElementById("password").value.trim();
+
+            console.log("Usuario:", user);
+            console.log("Password", pass);
+            
+            // para campos vacios
+            if (user === "" || pass === "") {
+                mostrarError("Por favor complete los campos");
+                return;
+            }
+
+            // simulación de ingreso correcto 
+            if (user !== "admin" || pass !== "1234") {
+                console.log("ENTRA AL ERROR");
+                mostrarError("Usuario o contraseña incorrectos");
+                return;
+            }
+
+            console.log("ENTRA AL LOGIN CORRECTO");
+
+            window.location.href="inicio.html";
+        }
+
+        function mostrarError(mensaje) {
+            document.getElementById("mensaje-error").innerText = mensaje;
+            document.getElementById("modal").style.display = "block";
+            document.getElementById("overlay").style.display = "block;"
+        }
+
+        function cerrarModal() {
+            document.getElementById("modal").style.display = "none";
+            document.getElementById("overlay").style.display = "none";
+        }
+
+
+    </script>
+
+</body>
+</html>
+

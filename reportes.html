@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Inicio - CarpinSoft</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="top-bar">
+        <div class="btn-menu" onclick="toggleMenu()">MENU</div>
+        <div class="title">CARPINSOFT</div> 
+    </div>
+
+    <div id="overlay" class="overlay" onclick="toggleMenu()"></div>
+
+    <div id="side-menu" class="side-menu">
+        <a href="inicio.html">Inicio</a>
+        <a href="materiales.html">Gestión de materiales</a>
+        <a href="pedidos.html">Gestión de pedidos</a>
+        <a href="clientes.html">Gestión de clientes</a>
+        <a href="reportes.html">Reportes</a>
+        <a href="configuracion.html">Configuración</a>
+    </div>
+
+    <h2>Reportes del sistema</h2>
+
+    <div class="card-container">
+        <div class="card">
+            <h3>Clientes registrados</h3>
+            <p>14</p>
+        </div>
+
+        <div class="card">
+            <h3>Materiales de inventario</h3>
+            <p>3</p>
+        </div>
+
+        <div class="card">
+            <h3>Pedidos</h3>
+            <p>3</p>
+        </div>
+    </div>
+
+    <div class="reporte-section">
+        <h2>Inventario Actual</h2>
+        <table class="tabla-reportes">
+
+            <thead>
+                <tr>
+                    <th>Material</th>
+                    <th>Disponibles</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr>
+                    <td>Roble</td>
+                    <td>5</td>
+                    <td class="stock-bajo">Stock Bajo</td>
+                </tr>
+
+                <tr>
+                    <td>Pino</td>
+                    <td>25</td>
+                    <td class="disponible">Disponible</td>
+                </tr>
+
+                <tr>
+                    <td>MDF</td>
+                    <td>3</td>
+                    <td class="stock-bajo">Stock Bajo</td>
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+
+    <div class="reporte-section">
+        <h2>Estado de Pedidos</h2>
+        <table class="tabla-reportes">
+
+            <thead>
+                <tr>
+                    <th>Pedido</th>
+                    <th>Cliente</th>
+                    <th>Producto</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr>
+                    <td>PED-001</td>
+                    <td>Juan Pérez</td>
+                    <td>Puerta en Roble</td>
+                    <td class="en-proceso">En proceso</td>
+                </tr>
+
+                <tr>
+                    <td>PED-002</td>
+                    <td>Ana López</td>
+                    <td>Closet Moderno</td>
+                    <td class="terminado">Terminado</td>
+                </tr>
+
+                <tr>
+                    <td>PED-003</td>
+                    <td>Carlos Gómez</td>
+                    <td>Mesa de Comedor</td>
+                    <td class="pendiente">Pendiente</td>
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+    <script>
+        function toggleMenu() {
+            const menu = document.getElementById("side-menu");
+            const overlay = document.getElementById("overlay");
+
+            if (menu.style.left === "0px") {
+                menu.style.left = "-200px";
+                overlay.style.display = "none";
+            } else {
+                menu.style.left = "0px";
+                overlay.style.display = "block";
+            }
+        }
+    </script>
+
+</body>
+</html>

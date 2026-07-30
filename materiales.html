@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Inicio - CarpinSoft</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="top-bar">
+        <div class="btn-menu" onclick="toggleMenu()">MENU</div>
+        <div class="title">CARPINSOFT</div> 
+    </div>
+
+    <div id="overlay" class="overlay" onclick="toggleMenu()"></div>
+
+    <div id="side-menu" class="side-menu">
+        <a href="inicio.html">Inicio</a>
+        <a href="materiales.html">Gestión de materiales</a>
+        <a href="pedidos.html">Gestión de pedidos</a>
+        <a href="clientes.html">Gestión de clientes</a>
+        <a href="reportes.html">Reportes</a>
+        <a href="configuracion.html">Configuración</a>
+    </div>
+
+    <h2>Gestión de materiales</h2>
+
+    <button onclick="abrirModal()">Agregar material</button>
+
+    <table border="1" widht="100%">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Stock inicial</th>
+                <th>Precio unitario</th>
+                <th>Salidas</th>
+                <th>Stock actual</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+
+        <tbody id="tabla-materiales">
+
+        </tbody>
+    </table>
+
+    <div id="modal-materiales" class="modal">
+        <h3>Nuevo material</h3>
+        
+        <select id="nombre">
+            <option value="">Seleccione un material</option>
+            <option value="MDF 9mm">MDF 9mm</option>
+            <option value="MDF 2.5mm">MDF 2.5mm</option>
+            <option value="Clavos F25">Clavos F25</option>
+            <option value="Clavos F30">Clavos F30</option>
+            <option value="Clavos F50">Clavos F350</option>
+            <option value="Cedro vara">Cedro vara</option>
+            <option value="Moncoro vara">Moncoro vara</option>
+        </select>
+        <input type="text" id="existencias" placeholder="Stock inicial">
+        <input type="text" id="precio" placeholder="Precio unitario">
+        <input type="text" id="salidas" placeholder="Salidas">
+
+        <button type="button" onclick="guardarMaterial()">Guardar</button>
+        <button onclick="cerrarModal()">Cancelar</button>
+    </div>
+
+    <div id="modal-error" class="modal">
+        <h3>!Error¡</h3>
+        <p id="mensaje-error"></p>
+        <button onclick="cerrarModal()">Aceptar</button>
+    </div>
+
+    <div id="modal-exito" class="modal">
+        <h3>!Aviso¡</h3>
+        <p id="mensaje-exito"></p>
+        <button onclick="cerrarModal()">Aceptar</button>
+    </div>
+
+    <script>
+
+        let salidas = 0;
+        let disponibles = existencias - salidas;
+        let filaEditando = null;
+
+        function toggleMenu() {
+            const menu = document.getElementById("side-menu");
+            const overlay = document.getElementById("overlay");
+
+            if (menu.style.left === "0px") {
+                menu.style.left = "-200px";
+                overlay.style.display = "none";
+            } else {
+                menu.style.left = "0px";
+                overlay.style.display = "block";
+            }
+        }
+
+        function guardarMaterial() {
+            const nombre = document.getElementById("nombre").value.trim();
+            const existencias = document.getElementById("existencias").value.trim();
+            const precio = document.getElementById("precio").value.trim();
+            const salidas = document.getElementById("salidas").value.trim(); 
+
+            if (nombre === "" || existencias === "" || precio === "" || salidas === "") {
+                mostrarError("Debe llenar todos los campos");
+                return;
+            }
+
+            const soloNumeros = /^[0-9]+$/;
+
+            if (!soloNumeros.test(existencias)) {
+                mostrarError("Ingrese el número de existencias");
+                return;
+            }
+
+            if (!soloNumeros.test(precio)) {
+                mostrarError("Precio inválido");
+                return;
+            }
+
+            if (!soloNumeros.test(salidas)) {
+                mostrarError("Salidas inválidas");
+                return;
+            }
+
+            if (parseInt(salidas) > parseInt(existencias)) {
+                mostrarError("Las salidas no pueden ser mayores a las existencias");
+                return;
+            }
+
+            const disponibles = parseInt(existencias) - parseInt(salidas);
+
+            if (filaEditando) {
+                filaEditando.children[0].innerText = nombre;
+                filaEditando.children[1].innerText = existencias;
+                filaEditando.children[2].innerText = precio;
+                filaEditando.children[3].innerText = salidas;
+                filaEditando.children[4].innerText = disponibles;
+
+                mostrarExito("Actualizado correctamente");
+                filaEditando = null;
+
+            } else {
+                mostrarExito("Material agregado correctamente");
+                agregarFila(nombre, existencias, precio, salidas, disponibles);
+            }
+
+            limpiarFormulario();
+            cerrarModal();
+        }
+
+        function agregarFila(nombre, existencias, precio, salidas, disponibles) {
+            const tabla = document.getElementById("tabla-materiales");
+
+            const fila = document.createElement("tr");
+
+            fila.innerHTML = `
+                <td>${nombre}</td>
+                <td>${existencias}</td>
+                <td>${precio}</td>
+                <td>${salidas}</td>
+                <td>${disponibles}</td>
+                <td>
+                    <button onclick="editarFila(this)">Editar</button>
+                    <button onclick="eliminarFila(this)">Eliminar</button>
+                </td>
+            `;
+
+            tabla.appendChild(fila);
+        }
+
+        function eliminarFila(boton) {
+            if (confirm("¿Desea eliminar este material?")) {
+
+                const fila = boton.parentNode.parentNode;
+
+                fila.remove();
+
+                mostrarExito("Material eliminado correctamente");
+            }
+        }
+
+        function editarFila(boton) {
+            filaEditando = boton.parentNode.parentNode;
+
+            const columnas = filaEditando.getElementsByTagName("td");
+
+            document.getElementById("nombre").value = columnas[0].innerText;
+            document.getElementById("existencias").value = columnas[1].innerText;
+            document.getElementById("precio").value = columnas[2].innerText;
+            document.getElementById("salidas").value = columnas[3].innerText;
+
+            abrirModal();
+        }
+
+        function limpiarFormulario() {
+            document.getElementById("nombre").value = "";
+            document.getElementById("existencias").value = "";
+            document.getElementById("precio").value = "";
+            document.getElementById("salidas").value = "";
+            document.getElementById("disponibles").value = "";
+        }
+
+        function abrirModal() {
+            document.getElementById("modal-materiales").style.display = "block";
+        }
+
+        function cerrarModal() {
+            document.getElementById("modal-materiales").style.display = "none";
+            document.getElementById("modal-error").style.display = "none";
+            document.getElementById("modal-exito").style.display = "none";
+            document.getElementById("overlay").style.display = "none";
+        }
+
+        function mostrarExito(mensaje) {
+            document.getElementById("mensaje-exito").innerText = mensaje;
+            document.getElementById("modal-exito").style.display = "block";
+            document.getElementById("overlay").style.display = "block";
+        }
+
+        function mostrarError(mensaje) {
+            document.getElementById("mensaje-error").innerText = mensaje;
+            document.getElementById("modal-error").style.display = "block";
+            document.getElementById("overlay").style.display = "block";
+        }
+
+    </script>
+
+</body>
+</html>

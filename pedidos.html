@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Inicio - CarpinSoft</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="top-bar">
+        <div class="btn-menu" onclick="toggleMenu()">MENU</div>
+        <div class="title">CARPINSOFT</div> 
+    </div>
+
+    <div id="overlay" class="overlay" onclick="toggleMenu()"></div>
+
+    <div id="side-menu" class="side-menu">
+        <a href="inicio.html">Inicio</a>
+        <a href="materiales.html">Gestión de materiales</a>
+        <a href="pedidos.html">Gestión de pedidos</a>
+        <a href="clientes.html">Gestión de clientes</a>
+        <a href="reportes.html">Reportes</a>
+        <a href="configuracion.html">Configuración</a>
+    </div>
+
+    <h2>Gestión de pedidos</h2>
+
+    <button onclick="abrirModal()">Agregar pedido</button>
+
+    <table border="1" widht="100%">
+        <thead>
+            <tr>
+                <th>Pedido</th>
+                <th>Cliente</th>
+                <th>Producto</th>
+                <th>Fecha entrega</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+
+        <tbody id="tabla-pedidos">
+
+        </tbody>
+    </table>
+
+    <div id="modal-pedidos" class="modal">
+        <h3>Nuevo pedido</h3>
+        
+        <input type="text" id="pedido" placeholder="N° pedido">
+        <input type="text" id="cliente" placeholder="Cliente">
+        <input type="text" id="producto" placeholder="Producto">
+        <input type="date" id="fechaEntrega" placeholder="Fecha entrega">
+        <select id="estado">
+            <option value="">Seleccione estado</option>
+            <option value="Pendiente">Pendiente</option>
+            <option value="En proceso">En proceso</option>
+            <option value="Terminado">Terminado</option>
+            <option value="Entregado">Entregado</option>
+        </select>
+
+        <button type="button" onclick="guardarPedido()">Guardar</button>
+        <button onclick="cerrarModal()">Cancelar</button>   
+    </div>
+
+    <div id="modal-error" class="modal">
+        <h3>!Error¡</h3>
+        <p id="mensaje-error"></p>
+        <button onclick="cerrarModal()">Aceptar</button>
+    </div>
+
+    <div id="modal-exito" class="modal">
+        <h3>!Aviso¡</h3>
+        <p id="mensaje-exito"></p>
+        <button onclick="cerrarModal()">Aceptar</button>
+    </div>
+
+    <script>
+        let filaEditando = null;
+
+        function toggleMenu() {
+            const menu = document.getElementById("side-menu");
+            const overlay = document.getElementById("overlay");
+
+            if (menu.style.left === "0px") {
+                menu.style.left = "-200px";
+                overlay.style.display = "none";
+            } else {
+                menu.style.left = "0px";
+                overlay.style.display = "block";
+            }
+        }
+
+        function guardarPedido() {
+            const pedido = document.getElementById("pedido").value.trim();
+            const cliente = document.getElementById("cliente").value.trim();
+            const producto = document.getElementById("producto").value.trim();
+            const fechaEntrega = document.getElementById("fechaEntrega").value.trim ();
+            const estado = document.getElementById("estado").value.trim();
+
+            if (pedido === "" || cliente === "" || producto === "" || fechaEntrega === "" || estado === "") {
+                mostrarError("Debe llenar todos los datos");
+                return;
+            }
+            
+            const soloLetras = /^[a-zA-Z\s]+$/;
+            const soloNumeros = /^[0-9]+$/;
+
+            if (!soloNumeros.test(pedido)) {
+                mostrarError("Número de pedido inválido");
+                return;
+            }
+
+            if (!soloLetras.test(cliente)) {
+                mostrarError("Nombre inválido");
+                return;
+            }
+
+            if (filaEditando) {
+                filaEditando.children[0].innerText = pedido;
+                filaEditando.children[1].innerText = cliente;
+                filaEditando.children[2].innerText = producto;
+                filaEditando.children[3].innerText = fechaEntrega;
+                filaEditando.children[4].innerText = estado;
+
+                mostrarExito("Pedido actualizado correctamente");
+
+                filaEditando = null;
+
+            } else {
+                mostrarExito("Pedido creado correctamente");
+                agregarFila(pedido, cliente, producto, fechaEntrega, estado);   
+            }
+
+            limpiarFormulario();
+            /*cerrarModal();*/
+        }
+
+        function agregarFila(pedido, cliente, producto, fechaEntrega, estado) {
+            const tabla = document.getElementById("tabla-pedidos");
+
+            const fila = document.createElement("tr");
+
+            fila.innerHTML = `
+                <td>${pedido}</td>
+                <td>${cliente}</td>
+                <td>${producto}</td>
+                <td>${fechaEntrega}</td>
+                <td>${estado}</td>
+                <td>
+                    <button onclick="editarFila(this)">Editar</button>
+                    <button onclick="eliminarFila(this)">Eliminar</button>
+                </td>
+            `;
+
+            tabla.appendChild(fila);
+        }
+
+        function editarFila(boton) {
+            filaEditando = boton.parentNode.parentNode;
+
+            const columnas = filaEditando.getElementsByTagName("td");
+
+            document.getElementById("pedido").value = columnas[0].innerText;
+            document.getElementById("cliente").value = columnas[1].innerText;
+            document.getElementById("producto").value = columnas[2].innerText;
+            document.getElementById("fechaEntrega").value = columnas[3].innerText;
+            document.getElementById("estado").value = columnas[4].innerText;
+
+            abrirModal();
+        }
+
+        function eliminarFila(boton) {
+            if (confirm("¿Desea eliminar este pedido?")) {
+
+                const fila = boton.parentNode.parentNode;
+
+                fila.remove();
+
+                mostrarExito("Pedido eliminado correctamente");
+            }
+        }
+
+        function limpiarFormulario() {
+            document.getElementById("pedido").value = "";
+            document.getElementById("cliente").value = "";
+            document.getElementById("producto").value = "";
+            document.getElementById("fechaEntrega").value = "";
+            document.getElementById("estado").value = "";
+        }
+
+        function abrirModal() {
+            document.getElementById("modal-pedidos").style.display = "block";
+        }
+
+        function cerrarModal() {
+            document.getElementById("modal-pedidos").style.display = "none";
+            document.getElementById("modal-error").style.display = "none";
+            document.getElementById("modal-exito").style.display = "none";
+            document.getElementById("overlay").style.display = "none";
+        }
+
+        function mostrarExito(mensaje) {
+            document.getElementById("mensaje-exito").innerText = mensaje;
+            document.getElementById("modal-exito").style.display = "block";
+            document.getElementById("overlay").style.display = "block";
+        }
+
+        function mostrarError(mensaje) {
+            document.getElementById("mensaje-error").innerText = mensaje;
+            document.getElementById("modal-error").style.display = "block";
+            document.getElementById("overlay").style.display = "block";
+        }
+
+    </script>
+
+</body>
+</html>

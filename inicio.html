@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Inicio - CarpinSoft</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="top-bar">
+        <div class="btn-menu" onclick="toggleMenu()">MENU</div>
+        <div class="title">CARPINSOFT</div> 
+    </div>
+
+    <div id="overlay" class="overlay" onclick="toggleMenu()"></div>
+
+    <div id="side-menu" class="side-menu">
+        <a href="inicio.html">Inicio</a>
+        <a href="materiales.html">Gestión de materiales</a>
+        <a href="pedidos.html">Gestión de pedidos</a>
+        <a href="clientes.html">Gestión de clientes</a>
+        <a href="reportes.html">Reportes</a>
+        <a href="configuracion.html">Configuración</a>
+    </div>
+
+    <div class="content">
+
+        <h1 class="welcome">Bienvenido a CarpinSoft</h1>
+        <p class="subtext">Seleccione una opción para comenzar</p>
+
+        <div class="card-container">
+            <a href="materiales.html" class="card">
+                <h3>Gestión de materiales</h3>
+            </a>
+            <a href="pedidos.html" class="card">
+                <h3>Gestión de pedidos</h3>
+            </a>
+            <a href="clientes.html" class="card">
+                <h3>Gestión de clientes</h3>
+            </a>
+            <a href="reportes.html" class="card">
+                <h3>Reportes</h3>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        function toggleMenu() {
+            const menu = document.getElementById("side-menu");
+            const overlay = document.getElementById("overlay");
+
+            if (menu.style.left === "0px") {
+                menu.style.left = "-200px";
+                overlay.style.display = "none";
+            } else {
+                menu.style.left = "0px";
+                overlay.style.display = "block";
+            }
+        }
+    </script>
+
+</body>
+</html>
