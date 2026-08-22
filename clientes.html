@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Inicio - CarpinSoft</title>
+    <title>Gestión de clientes - CarpinSoft</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 
@@ -25,37 +25,41 @@
 
     <h2>Gestión de clientes</h2>
 
-    <button onclick="abrirModal()">Agregar cliente</button>
+    <button onclick="abrirModal()">Agregar nuevo cliente</button>
 
-    <table border="1" widht="100%">
+    <table border="1" width="100%">
         <thead>
             <tr>
-                <th>Nombres</th>
-                <th>Apellidos</th>
-                <th>Teléfono</th>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Contacto</th>
                 <th>Dirección</th>
-                <th>Cédula</th>
+                <th>Acciones</th>
             </tr>
         </thead>
 
         <tbody id="tabla-clientes">
-
+            <!-- Aquí se agregarán las filas de clientes dinámicamente -->
         </tbody>
     </table>
 
+    <!-- Modal para el  formulario -->
     <div id="modal-cliente" class="modal">
         <h3>Nuevo cliente</h3>
-        
-        <input type="text" id="nombre" placeholder="Nombres">
-        <input type="text" id="apellido" placeholder="Apellidos">
-        <input type="text" id="telefonoCliente" placeholder="Teléfono">
+
+        <!-- Campo oculto para el ID -->
+        <input type="hidden" id="idCliente">
+
+        <input type="text" id="nombre" placeholder="Nombre">
+        <input type="text" id="contactoCliente" placeholder="Contacto">
         <input type="text" id="direccionCliente" placeholder="Dirección">
-        <input type="text" id="cedulaCliente" placeholder="Cédula">
 
         <button onclick="guardarCliente()">Guardar</button>
         <button onclick="cerrarModal()">Cancelar</button>
     </div>
 
+
+    <!-- Modales para mensajes -->
     <div id="modal-error" class="modal">
         <h3>!Error¡</h3>
         <p id="mensaje-error"></p>
@@ -70,8 +74,7 @@
 
     <script>
 
-        let filaEditando = null;
-
+        //Menu lateral
         function toggleMenu() {
             const menu = document.getElementById("side-menu");
             const overlay = document.getElementById("overlay");
@@ -85,14 +88,143 @@
             }
         }
 
+       // URL del controlador
+        const API_URL = "http://localhost/carpinsoft-api/routes/ClienteController.php";
+
+        // Variable glocal para alamcenar clientes cargados
+        let clientesCargados = [];
+
+        // Cargar lista de clientes al cargar la página
+        document.addEventListener("DOMContentLoaded", listarClientes);
+
+        // 1 Leer clientes GET
+        function listarClientes() {
+            fetch(API_URL)
+                .then(response => response.json())
+                .then(data => {
+                    clientesCargados = data; // Guardar los clientes cargados
+                    const tabla = document.getElementById("tabla-clientes");
+                    tabla.innerHTML = ""; // Limpiar la tabla antes de llenarla
+
+                    data.forEach(c => {
+                        const fila = document.createElement("tr");
+                        fila.innerHTML = `
+                            <td>${c.id_cliente}</td>
+                            <td>${c.nombre}</td>
+                            <td>${c.contacto}</td>
+                            <td>${c.direccion}</td>
+                            <td>
+                                <button onclick="cargarParaEditar(${c.id_cliente})">Editar</button>
+                                <button onclick="eliminarCliente(${c.id_cliente})">Eliminar</button>
+                            </td>
+                        `;
+                        tabla.appendChild(fila);
+                    });
+                })
+                .catch(() => mostrarError("No se pudo conectar con el servidor para obtener los clientes."));
+                
+        }
+
+        // 2 Crear/Actualizar cliente POST
+        function guardarCliente() {
+            const id = document.getElementById("idCliente").value;
+            const nombre = document.getElementById("nombre").value.trim();
+            const contacto = document.getElementById("contactoCliente").value.trim();
+            const direccion = document.getElementById("direccionCliente").value.trim();
+
+            // Validaciones de frontend
+            if (nombre === "" || contacto === "" || direccion === "") {
+                mostrarError("Debe llenar todos los datos");
+                return;
+            }
+
+            const soloLetras = /^[a-zA-Z\s]+$/;
+            const soloNumeros = /^[0-9]+$/;
+
+            if (!soloLetras.test(nombre)) {
+                mostrarError("Nombre inválido");
+                return;
+            }
+
+            if (!soloNumeros.test(contacto)) {
+                mostrarError("Contacto inválido");
+                return;
+            }
+
+            // Mapear JSON para enviar al backend
+            const datos = {
+                id_cliente: id ? id : null,
+                nombre: nombre,
+                contacto: contacto,
+                direccion: direccion
+            };
+
+            fetch(API_URL, {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(datos)
+            })
+            .then(response => response.json())
+            .then(res => {
+                if(res.success) {
+                    cerrarModal();
+                    mostrarExito(id ? "Cliente actualizado correctamente" : "Cliente agregado correctamente");
+                    limpiarFormulario();
+                    listarClientes();
+                } else {
+                    mostrarError("Error al guardar el cliente");
+                }
+            })
+            .catch(() => mostrarError ("Error en la solicitud HTTP al guardar."));
+
+        }
+
+        // 3 Cargar datos en modal para editar
+        function cargarParaEditar(id) {
+            //Buscar el cliente en la lista de clientes cargados
+            const cliente = clientesCargados.find(c => c.id_cliente == id);
+
+        if (cliente) {
+            // Asignamos valores a los inputs
+            if (document.getElementById("idCliente")) document.getElementById("idCliente").value = cliente.id_cliente;
+            if (document.getElementById("nombre")) document.getElementById("nombre").value = cliente.nombre;
+            if (document.getElementById("contactoCliente")) document.getElementById("contactoCliente").value = cliente.contacto;
+            if (document.getElementById("direccionCliente")) document.getElementById("direccionCliente").value = cliente.direccion;
+            
+            // Abrimos el modal
+            document.getElementById("modal-cliente").style.display = "block";
+            document.getElementById("overlay").style.display = "block";
+            } else {
+            mostrarError("No se encontraron los datos del cliente.");
+            }
+        }
+
+        // 4 Eliminar cliente DELETE
+        function eliminarCliente(id) {
+            if (confirm("¿Desea eliminar este cliente?")) {
+                fetch(`${API_URL}?id=${id}`, { method: "DELETE" })
+                    .then(response => response.json())
+                    .then(res => {
+                        if (res.success) {
+                            mostrarExito("Cliente eliminado correctamente");
+                            listarClientes();
+                        } else {
+                            mostrarError(res.message);
+                        }
+                    })
+                    .catch(() => mostrarError("Error en la solicitud HTTP al eliminar."));
+            }
+        }
+
+        //let filaEditando = null;
+
+        /*
         function guardarCliente() {
             const nombre = document.getElementById("nombre").value.trim();
-            const apellido = document.getElementById("apellido").value.trim();
-            const telefono = document.getElementById("telefonoCliente").value.trim();
+            const contacto = document.getElementById("contactoCliente").value.trim();
             const direccion = document.getElementById("direccionCliente").value.trim ();
-            const cedula = document.getElementById("cedulaCliente").value.trim();
 
-            if (nombre === "" || apellido === "" || telefono === "" || direccion === "" || cedula === "") {
+            if (nombre === "" || contacto === "" || direccion === "") {
                 mostrarError("Debe llenar todos los datos");
                 return;
             }
@@ -105,27 +237,15 @@
                 return;
             }
 
-            if (!soloLetras.test(apellido)) {
-                mostrarError("Apellido inválido");
-                return;
-            }
-
-            if (!soloNumeros.test(telefono)) {
-                mostrarError("Teléfono inválido");
-                return;
-            }
-
-            if (!soloNumeros.test(cedula)) {
-                mostrarError("Cédula inválida");
+            if (!soloNumeros.test(contacto)) {
+                mostrarError("Contacto inválido");
                 return;
             }
 
             if (filaEditando) {
                 filaEditando.children[0].innerText = nombre;
-                filaEditando.children[1].innerText = apellido;
-                filaEditando.children[2].innerText = telefono;
-                filaEditando.children[3].innerText = direccion;
-                filaEditando.children[4].innerText = cedula;
+                filaEditando.children[1].innerText = contacto;
+                filaEditando.children[2].innerText = direccion;
 
                 mostrarExito("Cliente actualizado correctamente");
 
@@ -133,25 +253,24 @@
 
             } else {
                 mostrarExito("Cliente agregado correctamente");
-                agregarFila(nombre, apellido, telefono, direccion, cedula);   
+                agregarFila(nombre, contacto, direccion);   
             }
 
             limpiarFormulario();
-            /*cerrarModal(); */
+            //cerrarModal(); 
 
         }
+        
 
-        function agregarFila(nombre, apellido, telefono, direccion, cedula) {
+        function agregarFila(nombre, contacto, direccion) {
             const tabla = document.getElementById("tabla-clientes");
 
             const fila = document.createElement("tr");
 
             fila.innerHTML = `
                 <td>${nombre}</td>
-                <td>${apellido}</td>
-                <td>${telefono}</td>
+                <td>${contacto}</td>
                 <td>${direccion}</td>
-                <td>${cedula}</td>
                 <td>
                     <button onclick="editarFila(this)">Editar</button>
                     <button onclick="eliminarFila(this)">Eliminar</button>
@@ -178,24 +297,29 @@
             const columnas = filaEditando.getElementsByTagName("td");
 
             document.getElementById("nombre").value = columnas[0].innerText;
-            document.getElementById("apellido").value = columnas[1].innerText;
-            document.getElementById("telefonoCliente").value = columnas[2].innerText;
-            document.getElementById("direccionCliente").value = columnas[3].innerText;
-            document.getElementById("cedulaCliente").value = columnas[4].innerText;
+            document.getElementById("contactoCliente").value = columnas[1].innerText;
+            document.getElementById("direccionCliente").value = columnas[2].innerText;
 
             abrirModal();
         }
+        */
 
         function limpiarFormulario() {
+            document.getElementById("idCliente").value = "";
             document.getElementById("nombre").value = "";
-            document.getElementById("apellido").value = "";
-            document.getElementById("telefonoCliente").value = "";
+            document.getElementById("contactoCliente").value = "";
             document.getElementById("direccionCliente").value = "";
-            document.getElementById("cedulaCliente").value = "";
+        }
+
+        function abrirModalNuevo() {
+            limpiarFormulario();
+            document.getElementById("modal-titulo").innerText = "Nuevo cliente";
+            abrirModal();
         }
 
         function abrirModal() {
             document.getElementById("modal-cliente").style.display = "block";
+            document.getElementById("overlay").style.display = "block";
         }
 
         function cerrarModal() {
