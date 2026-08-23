@@ -27,30 +27,35 @@
 
     <button onclick="abrirModal()">Agregar pedido</button>
 
-    <table border="1" widht="100%">
+    <table border="1" width="100%">
         <thead>
             <tr>
-                <th>Pedido</th>
-                <th>Cliente</th>
-                <th>Producto</th>
-                <th>Fecha entrega</th>
+                <th>ID Pedido</th>
+                <th>Fecha</th>
                 <th>Estado</th>
+                <th>Especificación</th>
+                <th>Cliente</th>
                 <th>Acciones</th>
             </tr>
         </thead>
 
         <tbody id="tabla-pedidos">
-
+            <!-- Aquí se agregarán las filas de pedidos dinámicamente -->
         </tbody>
     </table>
 
+    <!-- Modal para agregar/editar pedido -->
     <div id="modal-pedidos" class="modal">
-        <h3>Nuevo pedido</h3>
+        <h3 id="modal-titulo">Nuevo pedido</h3>
         
-        <input type="text" id="pedido" placeholder="N° pedido">
-        <input type="text" id="cliente" placeholder="Cliente">
-        <input type="text" id="producto" placeholder="Producto">
-        <input type="date" id="fechaEntrega" placeholder="Fecha entrega">
+        <!-- input oculto para el ID del pedido -->
+        <input type="hidden" id="idPedido">
+        <!--campo fecha -->
+        <label>Fecha:</label>
+        <input type="date" id="fecha" id="Fecha">
+        <label>Especificación:</label>
+        <input type="text" id="especificacion" placeholder="Especificación del pedido">
+        <label>Estado:</label>
         <select id="estado">
             <option value="">Seleccione estado</option>
             <option value="Pendiente">Pendiente</option>
@@ -58,11 +63,18 @@
             <option value="Terminado">Terminado</option>
             <option value="Entregado">Entregado</option>
         </select>
+        <!--campo cliente -->
+        <label>Cliente:</label>
+        <select id="idCliente">
+            <option value = "">Cargando clientes...</option>
+        </select>
 
+        <br><br>
         <button type="button" onclick="guardarPedido()">Guardar</button>
         <button onclick="cerrarModal()">Cancelar</button>   
     </div>
 
+    <!-- modales de notificación -->
     <div id="modal-error" class="modal">
         <h3>!Error¡</h3>
         <p id="mensaje-error"></p>
@@ -76,7 +88,6 @@
     </div>
 
     <script>
-        let filaEditando = null;
 
         function toggleMenu() {
             const menu = document.getElementById("side-menu");
@@ -91,6 +102,146 @@
             }
         }
 
+        const API_PEDIDOS = "http://localhost/carpinsoft-api/routes/PedidoController.php";
+        const API_CLIENTES = "http://localhost/carpinsoft-api/routes/ClienteController.php";
+
+        let pedidosCargados = [];
+
+        document.addEventListener("DOMContentLoaded", () => {
+            listarPedidos();
+            cargarSelectClientes();
+        });
+
+        // 1 Cargar clientes en select FK
+        function cargarSelectClientes() {
+            fetch(API_CLIENTES)
+                .then(response => response.json())
+                .then(clientes => {
+                    const select = document.getElementById("idCliente");
+                    select.innerHTML = '<option value="">Seleccione cliente</option>';
+                    clientes.forEach(c => {
+                        select.innerHTML += `<option value="${c.id_cliente}">${c.nombre}</option>`;
+                    });
+                })
+                .catch(() => mostrarError("Error al conectar la base de datos de clientes"));
+        }
+
+        // 2 Obtener pedidos GET
+        function listarPedidos() {
+            fetch(API_PEDIDOS)
+                .then(response => response.json())
+                .then(data => {
+                    pedidosCargados = data;
+                    const tabla = document.getElementById("tabla-pedidos");
+                    tabla.innerHTML = "";
+
+                    data.forEach(p => {
+                        const fila = document.createElement("tr");
+                        fila.innerHTML = `
+                            <td>${p.id_pedido}</td>
+                            <td>${p.fecha}</td>
+                            <td>${p.estado}</td>
+                            <td>${p.especificacion}</td>
+                            <td>${p.nombre_cliente || p.id_cliente}</td>
+                            <td>
+                                <button onclick="editarPedido(${p.id_pedido})">Editar</button>
+                                <button onclick="eliminarFila(${p.id_pedido})">Eliminar</button>
+                            </td>
+                        `;
+                        tabla.appendChild(fila);
+                    });
+                })
+                .catch(() => mostrarError("Error al conectar con el servidor"));
+        }
+
+        //3 Crear/Actualizar pedido POST
+        function guardarPedido() {
+            const id = document.getElementById("idPedido").value;
+            const fecha = document.getElementById("fecha").value.trim();
+            const especificacion = document.getElementById("especificacion").value.trim();
+            const estado = document.getElementById("estado").value.trim();
+            const idCliente = document.getElementById("idCliente").value.trim();
+
+            if (fecha === "" || especificacion === "" || estado === "" || idCliente === "") {
+                mostrarError("Debe llenar todos los datos");
+                return;
+            }
+
+            const datos = {
+                id_pedido: id ? id : null,
+                fecha: fecha,
+                especificacion: especificacion,
+                estado: estado,
+                id_cliente: idCliente
+            };
+
+            fetch(API_PEDIDOS, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(datos)
+            })
+            .then(response => response.json())
+            .then(response => {
+                if (response.success) {
+                    cerrarModal();
+                    mostrarExito(id ? "Pedido actualizado correctamente" : "Pedido registrado correctamente");
+                    limpiarFormulario();
+                    listarPedidos();
+                } else {
+                    mostrarError("No se pudo guardar el pedido en la base de datos.");
+                }
+            })
+            .catch(() => mostrarError("Error al conectar la base de datos de pedidos"));
+        }
+
+        // 4 Editar pedido
+        function editarPedido(id) {
+            console.log("Intentando editar pedido ID:", id);
+            console.log("Lista de pedidos cargados:", pedidosCargados);
+
+            // Buscar el pedido en el arreglo
+            const pedido = pedidosCargados.find(p => p.id_pedido == id);
+
+            if (pedido) {
+                document.getElementById("modal-titulo").innerText = "Editar Pedido";
+                document.getElementById("idPedido").value = pedido.id_pedido;
+                document.getElementById("fecha").value = pedido.fecha || "";
+                document.getElementById("especificacion").value = pedido.especificacion || "";
+                document.getElementById("estado").value = pedido.estado || "";
+                
+                // Asignar valor del cliente al select
+                if (document.getElementById("idCliente")) {
+                    document.getElementById("idCliente").value = pedido.id_cliente;
+                }
+
+                // Forzar apertura del modal
+                document.getElementById("modal-pedidos").style.display = "block";
+                document.getElementById("overlay").style.display = "block";
+            } else {
+                mostrarError("No se encontraron los datos del pedido para editar.");
+            }
+        }
+
+        // 5 Eliminar pedido DELETE
+        function eliminarFila(id) {
+            if (confirm("¿Desea eliminar este pedido?")) {
+                fetch(`${API_PEDIDOS}?id=${id}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(response => {
+                    if (response.success) {
+                        mostrarExito("Pedido eliminado correctamente");
+                        listarPedidos();
+                    } else {
+                        mostrarError("No se pudo eliminar el pedido .");
+                    }
+                })
+                .catch(() => mostrarError("Error al conectar la base de datos de pedidos"));
+            }
+        }
+
+        /*
         function guardarPedido() {
             const pedido = document.getElementById("pedido").value.trim();
             const cliente = document.getElementById("cliente").value.trim();
@@ -133,7 +284,7 @@
             }
 
             limpiarFormulario();
-            /*cerrarModal();*/
+            
         }
 
         function agregarFila(pedido, cliente, producto, fechaEntrega, estado) {
@@ -181,12 +332,16 @@
             }
         }
 
+        
+        }
+            */
+
         function limpiarFormulario() {
-            document.getElementById("pedido").value = "";
-            document.getElementById("cliente").value = "";
-            document.getElementById("producto").value = "";
-            document.getElementById("fechaEntrega").value = "";
+            document.getElementById("idPedido").value = "";
+            document.getElementById("fecha").value = "";
             document.getElementById("estado").value = "";
+            document.getElementById("especificacion").value = "";
+            document.getElementById("idCliente").value = "";
         }
 
         function abrirModal() {
