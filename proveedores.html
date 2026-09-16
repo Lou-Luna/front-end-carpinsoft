@@ -48,14 +48,9 @@
         <input type="hidden" id="id_proveedor"> 
 
         <label >Proveedor:</label>
-        <input type="text" id="nombre" placeholder="Nombre del material" required > 
-        <label >Cantidad:</label>
-        <input type="number" id="cantidad" placeholder="Cantidad" min="0" step="1" required > 
-        <!--campo proveedor -->
-        <label>Proveedor:</label>
-        <select id="idProveedor">
-            <option value = "">Cargando proveedores...</option>
-        </select>
+        <input type="text" id="nombre" placeholder="Nombre del proveedor" required > 
+        <label >Contacto:</label>
+        <input type="text" id="contacto" placeholder="Teléfonode contacto" required > 
 
         <br><br>
         <button type="button" onclick="guardarMaterial()">Guardar</button>
@@ -73,3 +68,53 @@
         <p id="mensaje-exito"></p>
         <button onclick="cerrarModal()">Aceptar</button>
     </div>
+
+    <script>
+
+        //Menu lateral
+        function toggleMenu() {
+            const menu = document.getElementById("side-menu");
+            const overlay = document.getElementById("overlay");
+
+            if (menu.style.left === "0px") {
+                menu.style.left = "-200px";
+                overlay.style.display = "none";
+            } else {
+                menu.style.left = "0px";
+                overlay.style.display = "block";
+            }
+        }
+
+        function limpiarFormulario() {
+            document.getElementById("nombre").value = "";
+            document.getElementById("contacto").value = "";
+        }
+        
+
+        function abrirModal() {
+            document.getElementById("modal-proveedores").style.display = "block";
+        }
+
+        function cerrarModal() {
+            document.getElementById("modal-proveedores").style.display = "none";
+            document.getElementById("modal-error").style.display = "none";
+            document.getElementById("modal-exito").style.display = "none";
+            document.getElementById("overlay").style.display = "none";
+        }
+
+        function mostrarExito(mensaje) {
+            document.getElementById("mensaje-exito").innerText = mensaje;
+            document.getElementById("modal-exito").style.display = "block";
+            document.getElementById("overlay").style.display = "block";
+        }
+
+        function mostrarError(mensaje) {
+            document.getElementById("mensaje-error").innerText = mensaje;
+            document.getElementById("modal-error").style.display = "block";
+            document.getElementById("overlay").style.display = "block";
+        }
+
+    </script>
+
+</body>
+</html>
