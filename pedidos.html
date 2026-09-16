@@ -105,8 +105,10 @@
         const API_PEDIDOS = "http://localhost/carpinsoft-api/routes/PedidoController.php";
         const API_CLIENTES = "http://localhost/carpinsoft-api/routes/ClienteController.php";
 
+        // Variables para almacenar los pedidos cargados
         let pedidosCargados = [];
 
+        // Cargar pedidos y clientes al cargar la página
         document.addEventListener("DOMContentLoaded", () => {
             listarPedidos();
             cargarSelectClientes();

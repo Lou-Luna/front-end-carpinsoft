@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Inicio - CarpinSoft</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="top-bar">
+        <div class="btn-menu" onclick="toggleMenu()">MENU</div>
+        <div class="title">CARPINSOFT</div> 
+    </div>
+
+    <div id="overlay" class="overlay" onclick="toggleMenu()"></div>
+
+    <div id="side-menu" class="side-menu">
+        <a href="inicio.html">Inicio</a>
+        <a href="materiales.html">Gestión de materiales</a>
+        <a href="pedidos.html">Gestión de pedidos</a>
+        <a href="clientes.html">Gestión de clientes</a>
+        <a href="proveedores.html">Gestión de proveedores</a>
+        <a href="reportes.html">Reportes</a>
+        <a href="configuracion.html">Configuración</a>
+    </div>
+
+    <h2>Gestión de proveedores</h2>
+
+    <button onclick="abrirModal()">Agregar proveedor</button>
+
+    <table border="1" widht="100%">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Contacto</th> 
+            </tr>
+        </thead>
+
+        <tbody id="tabla-proveedores">
+            <!-- proveedores se cargan desde el controlador-->
+        </tbody>
+    </table>
+
+    <div id="modal-proveedores" class="modal">
+        <h3 id="modal-titulo">Nuevo proveedor</h3>
+        
+        <!-- ID utilizado únicamente para actualizar --> 
+        <input type="hidden" id="id_proveedor"> 
+
+        <label >Proveedor:</label>
+        <input type="text" id="nombre" placeholder="Nombre del material" required > 
+        <label >Cantidad:</label>
+        <input type="number" id="cantidad" placeholder="Cantidad" min="0" step="1" required > 
+        <!--campo proveedor -->
+        <label>Proveedor:</label>
+        <select id="idProveedor">
+            <option value = "">Cargando proveedores...</option>
+        </select>
+
+        <br><br>
+        <button type="button" onclick="guardarMaterial()">Guardar</button>
+        <button onclick="cerrarModal()">Cancelar</button>
+    </div>
+
+    <div id="modal-error" class="modal">
+        <h3>!Error¡</h3>
+        <p id="mensaje-error"></p>
+        <button onclick="cerrarModal()">Aceptar</button>
+    </div>
+
+    <div id="modal-exito" class="modal">
+        <h3>!Aviso¡</h3>
+        <p id="mensaje-exito"></p>
+        <button onclick="cerrarModal()">Aceptar</button>
+    </div>

@@ -19,6 +19,7 @@
         <a href="materiales.html">Gestión de materiales</a>
         <a href="pedidos.html">Gestión de pedidos</a>
         <a href="clientes.html">Gestión de clientes</a>
+        <a href="proveedores.html">Gestión de proveedores</a>
         <a href="reportes.html">Reportes</a>
         <a href="configuracion.html">Configuración</a>
     </div>
@@ -31,36 +32,34 @@
         <thead>
             <tr>
                 <th>Nombre</th>
-                <th>Stock inicial</th>
-                <th>Precio unitario</th>
-                <th>Salidas</th>
-                <th>Stock actual</th>
+                <th>Cantidad</th> 
+                <th>Proveedor</th> 
                 <th>Acciones</th>
             </tr>
         </thead>
 
         <tbody id="tabla-materiales">
-
+            <!-- materiales se cargan desde el controlador-->
         </tbody>
     </table>
 
     <div id="modal-materiales" class="modal">
-        <h3>Nuevo material</h3>
+        <h3 id="modal-titulo">Nuevo material</h3>
         
-        <select id="nombre">
-            <option value="">Seleccione un material</option>
-            <option value="MDF 9mm">MDF 9mm</option>
-            <option value="MDF 2.5mm">MDF 2.5mm</option>
-            <option value="Clavos F25">Clavos F25</option>
-            <option value="Clavos F30">Clavos F30</option>
-            <option value="Clavos F50">Clavos F350</option>
-            <option value="Cedro vara">Cedro vara</option>
-            <option value="Moncoro vara">Moncoro vara</option>
-        </select>
-        <input type="text" id="existencias" placeholder="Stock inicial">
-        <input type="text" id="precio" placeholder="Precio unitario">
-        <input type="text" id="salidas" placeholder="Salidas">
+        <!-- ID utilizado únicamente para actualizar --> 
+        <input type="hidden" id="id_material"> 
 
+        <label >Material:</label>
+        <input type="text" id="nombre" placeholder="Nombre del material" required > 
+        <label >Cantidad:</label>
+        <input type="number" id="cantidad" placeholder="Cantidad" min="0" step="1" required > 
+        <!--campo proveedor -->
+        <label>Proveedor:</label>
+        <select id="idProveedor">
+            <option value = "">Cargando proveedores...</option>
+        </select>
+
+        <br><br>
         <button type="button" onclick="guardarMaterial()">Guardar</button>
         <button onclick="cerrarModal()">Cancelar</button>
     </div>
@@ -79,10 +78,7 @@
 
     <script>
 
-        let salidas = 0;
-        let disponibles = existencias - salidas;
-        let filaEditando = null;
-
+        //Menu lateral
         function toggleMenu() {
             const menu = document.getElementById("side-menu");
             const overlay = document.getElementById("overlay");
@@ -96,6 +92,146 @@
             }
         }
 
+        //URL del controlador
+        const API_MATERIAL = "http://localhost/carpinsoft-api/routes/MaterialController.php";
+        const API_PROVEEDOR = "http://localhost/carpinsoft-api/routes/ProveedorController.php";
+
+        // Variable glocal para alamcenar materiales cargados
+        let materialesCargados = [];
+
+        // Cargar lista de materiales al cargar la página
+        document.addEventListener("DOMContentLoaded", () => {
+            listarMateriales();
+            cargarSelectProveedores();
+        });
+
+       // 1 Cargar proveedores en select FK
+        function cargarSelectProveedores() {
+            fetch(API_PROVEEDOR)
+                .then(response => response.json())
+                .then(proveedores => {
+                    const select = document.getElementById("idProveedor");
+                    if (select) {
+                        select.innerHTML = '<option value="">Seleccione proveedor</option>';
+                        proveedores.forEach(p => {
+                            select.innerHTML += `<option value="${p.id_proveedor}">${p.nombre}</option>`;
+                        });
+                    }
+                })
+                .catch(() => mostrarError("Error al conectar la base de datos de proveedores"));
+        }
+
+        // 2 Obtener materiales GET
+        function listarMateriales() {
+            fetch(API_MATERIAL)
+                .then(response => response.json())
+                .then(data => {
+                    materialesCargados = data;
+                    const tabla = document.getElementById("tabla-materiales");
+                    tabla.innerHTML = "";
+
+                    data.forEach(m => {
+                        const fila = document.createElement("tr");
+                        fila.innerHTML = `
+                            <td>${m.id_material}</td>
+                            <td>${m.nombre}</td>
+                            <td>${m.cantidad}</td>
+                            <td>${m.nombre_proveedor || m.id_proveedor}</td>
+                            <td>
+                                <button onclick="editarMaterialPorId(${m.id_material})">Editar</button>
+                                <button onclick="eliminarFila(${m.id_material})">Eliminar</button>
+                            </td>
+                        `;
+                        tabla.appendChild(fila);
+                    });
+                })
+                .catch(() => mostrarError("Error al conectar con el servidor"));
+        }
+
+        //3 Crear/Actualizar material POST
+        function guardarMaterial() {
+            const id = document.getElementById("id_material").value.trim();
+            const nombre = document.getElementById("nombre").value.trim();
+            const cantidad = document.getElementById("cantidad").value.trim();
+            const idProveedor = document.getElementById("idProveedor").value.trim();
+
+            if (!nombre || !cantidad || !idProveedor || idProveedor === "") {
+                mostrarError("Debe llenar todos los campos");
+                return;
+            }
+
+            const datos = {
+                id_material: id ? id : null,
+                nombre: nombre,
+                cantidad: cantidad,
+                id_proveedor: idProveedor
+            };
+
+            fetch(API_MATERIAL, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(datos)
+            })
+            .then(response => response.json())
+            .then(response => {
+                if (response.success) {
+                    cerrarModal();
+                    mostrarExito(id ? "Material actualizado correctamente" : "Material registrado correctamente");
+                    limpiarFormulario();
+                    listarMateriales();
+                } else {
+                    mostrarError("No se pudo guardar el material en la base de datos.");
+                }
+            })
+            .catch(() => mostrarError("Error al conectar la base de datos de materiales"));
+        }
+
+        // 4 Editar material
+        function editarMaterialPorId(id) {
+            const material = materialesCargados.find(m => m.id_material == id);
+
+            if (material) {
+                const titulo = document.getElementById("modal-titulo");
+                if (titulo) titulo.innerText = "Editar Material";
+
+                const inputId = document.getElementById("id_material");
+                if (inputId) inputId.value = material.id_material;
+
+                const inputNombre = document.getElementById("nombre");
+                if (inputNombre) inputNombre.value = material.nombre || "";
+
+                const inputCantidad = document.getElementById("cantidad");
+                if (inputCantidad) inputCantidad.value = material.cantidad || "";
+
+                const selectProveedor = document.getElementById("idProveedor");
+                if (selectProveedor) selectProveedor.value = material.id_proveedor || "";
+
+                abrirModal();
+            } else {
+                mostrarError("No se encontraron los datos del material.");
+            }
+        }
+
+        // 5 Eliminar material DELETE
+        function eliminarFila(id) {
+            if (confirm("¿Desea eliminar este material?")) {
+                fetch(`${API_MATERIAL}?id=${id}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(response => {
+                    if (response.success) {
+                        mostrarExito("Material eliminado correctamente");
+                        listarMateriales();
+                    } else {
+                        mostrarError("No se pudo eliminar el material.");
+                    }
+                })
+                .catch(() => mostrarError("Error al conectar la base de datos de materiales"));
+            }
+        }
+
+        /*
         function guardarMaterial() {
             const nombre = document.getElementById("nombre").value.trim();
             const existencias = document.getElementById("existencias").value.trim();
@@ -193,14 +329,16 @@
 
             abrirModal();
         }
+            */
+
+
 
         function limpiarFormulario() {
             document.getElementById("nombre").value = "";
-            document.getElementById("existencias").value = "";
-            document.getElementById("precio").value = "";
-            document.getElementById("salidas").value = "";
-            document.getElementById("disponibles").value = "";
+            document.getElementById("cantidad").value = "";
+            document.getElementById("idProveedor").value = "";
         }
+        
 
         function abrirModal() {
             document.getElementById("modal-materiales").style.display = "block";
