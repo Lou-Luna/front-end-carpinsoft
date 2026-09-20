@@ -31,8 +31,10 @@
     <table border="1" widht="100%">
         <thead>
             <tr>
+                <th>ID</th>
                 <th>Nombre</th>
                 <th>Contacto</th> 
+                <th>Acciones</th>
             </tr>
         </thead>
 
@@ -45,15 +47,15 @@
         <h3 id="modal-titulo">Nuevo proveedor</h3>
         
         <!-- ID utilizado únicamente para actualizar --> 
-        <input type="hidden" id="id_proveedor"> 
+        <input type="hidden" id="idProveedor"> 
 
         <label >Proveedor:</label>
-        <input type="text" id="nombre" placeholder="Nombre del proveedor" required > 
+        <input type="text" id="nombreProveedor" placeholder="Nombre del proveedor" required > 
         <label >Contacto:</label>
-        <input type="text" id="contacto" placeholder="Teléfonode contacto" required > 
+        <input type="text" id="contactoProveedor" placeholder="Teléfono de contacto" required > 
 
         <br><br>
-        <button type="button" onclick="guardarMaterial()">Guardar</button>
+        <button type="button" onclick="guardarProveedor()">Guardar</button>
         <button onclick="cerrarModal()">Cancelar</button>
     </div>
 
@@ -85,9 +87,128 @@
             }
         }
 
+        // URL del controlador
+        const API_URL = "http://localhost/carpinsoft-api/routes/ProveedorController.php";
+
+        // Variable glocal para alamcenar proveedores cargados
+        let proveedoresCargados = [];
+
+        // Cargar lista de proveedores al cargar la página
+        document.addEventListener("DOMContentLoaded", listarProveedores);
+
+        // 1 Leer proveedores GET
+        function listarProveedores() {
+            fetch(API_URL)
+                .then(response => response.json())
+                .then(data => {
+                    proveedoresCargados = data; // Guardar los proveedores cargados
+                    const tabla = document.getElementById("tabla-proveedores");
+                    tabla.innerHTML = ""; // Limpiar la tabla antes de llenarla
+
+                    data.forEach(c => {
+                        const fila = document.createElement("tr");
+                        fila.innerHTML = `
+                            <td>${c.id_proveedor}</td>
+                            <td>${c.nombre}</td>
+                            <td>${c.contacto}</td>
+                            <td>
+                                <button onclick="cargarParaEditar(${c.id_proveedor})">Editar</button>
+                                <button onclick="eliminarProveedor(${c.id_proveedor})">Eliminar</button>
+                            </td>
+                        `;
+                        tabla.appendChild(fila);
+                    });
+                })
+                .catch(() => mostrarError("No se pudo conectar con el servidor para obtener los proveedores."));
+                
+        }
+
+        // 2 Crear/Actualizar proveedor POST
+        function guardarProveedor() {
+            const id = document.getElementById("idProveedor").value;
+            const nombre = document.getElementById("nombreProveedor").value.trim();
+            const contacto = document.getElementById("contactoProveedor").value.trim();
+
+            // Validaciones de frontend
+            if (nombre === "" || contacto === "") {
+                mostrarError("Debe llenar todos los datos");
+                return;
+            }
+
+            const soloNumeros = /^[0-9]+$/;
+
+            if (!soloNumeros.test(contacto)) {
+                mostrarError("Contacto inválido");
+                return;
+            }
+
+            // Mapear JSON para enviar al backend
+            const datos = {
+                id_proveedor: id ? id : null,
+                nombre: nombre,
+                contacto: contacto
+            };
+
+            fetch(API_URL, {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(datos)
+            })
+            .then(response => response.json())
+            .then(res => {
+                if(res.success) {
+                    cerrarModal();
+                    mostrarExito(id ? "Proveedor actualizado correctamente" : "Proveedor agregado correctamente");
+                    limpiarFormulario();
+                    listarProveedores();
+                } else {
+                    mostrarError("Error al guardar el proveedor");
+                }
+            })
+            .catch(() => mostrarError ("Error en la solicitud HTTP al guardar."));
+
+        }
+
+        // 3 Cargar datos en modal para editar
+        function cargarParaEditar(id) {
+            //Buscar el proveedor en la lista de proveedores cargados
+            const proveedor = proveedoresCargados.find(p => p.id_proveedor == id);
+
+        if (proveedor) {
+            // Asignamos valores a los inputs
+            if (document.getElementById("idProveedor")) document.getElementById("idProveedor").value = proveedor.id_proveedor;
+            if (document.getElementById("nombreProveedor")) document.getElementById("nombreProveedor").value = proveedor.nombre;
+            if (document.getElementById("contactoProveedor")) document.getElementById("contactoProveedor").value = proveedor.contacto;
+            
+            // Abrimos el modal
+            document.getElementById("modal-proveedores").style.display = "block";
+            document.getElementById("overlay").style.display = "block";
+            } else {
+            mostrarError("No se encontraron los datos del proveedor.");
+            }
+        }
+
+        // 4 Eliminar proveedor DELETE
+        function eliminarProveedor(id) {
+            if (confirm("¿Desea eliminar este proveedor?")) {
+                fetch(`${API_URL}?id=${id}`, { method: "DELETE" })
+                    .then(response => response.json())
+                    .then(res => {
+                        if (res.success) {
+                            mostrarExito("Proveedor eliminado correctamente");
+                            listarProveedores();
+                        } else {
+                            mostrarError(res.message);
+                        }
+                    })
+                    .catch(() => mostrarError("Error en la solicitud HTTP al eliminar."));
+            }
+        }
+
         function limpiarFormulario() {
-            document.getElementById("nombre").value = "";
-            document.getElementById("contacto").value = "";
+            document.getElementById("idProveedor").value = "";
+            document.getElementById("nombreProveedor").value = "";
+            document.getElementById("contactoProveedor").value = "";
         }
         
 

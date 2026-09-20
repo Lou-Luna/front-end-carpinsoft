@@ -31,6 +31,7 @@
     <table border="1" widht="100%">
         <thead>
             <tr>
+                <th>ID</th>
                 <th>Nombre</th>
                 <th>Cantidad</th> 
                 <th>Proveedor</th> 
@@ -107,18 +108,20 @@
 
        // 1 Cargar proveedores en select FK
         function cargarSelectProveedores() {
-            fetch(API_PROVEEDOR)
+            return fetch(API_PROVEEDOR)
                 .then(response => response.json())
                 .then(proveedores => {
                     const select = document.getElementById("idProveedor");
                     if (select) {
                         select.innerHTML = '<option value="">Seleccione proveedor</option>';
                         proveedores.forEach(p => {
-                            select.innerHTML += `<option value="${p.id_proveedor}">${p.nombre}</option>`;
+                            // Validar si la propiedad del controlador es id_proveedor o id
+                            const idProv = p.id_proveedor || p.id;
+                            select.innerHTML += `<option value="${idProv}">${p.nombre}</option>`;
                         });
                     }
-                })
-                .catch(() => mostrarError("Error al conectar la base de datos de proveedores"));
+        })
+        .catch(() => mostrarError("Error al conectar la base de datos de proveedores"));
         }
 
         // 2 Obtener materiales GET
@@ -153,15 +156,18 @@
             const id = document.getElementById("id_material").value.trim();
             const nombre = document.getElementById("nombre").value.trim();
             const cantidad = document.getElementById("cantidad").value.trim();
-            const idProveedor = document.getElementById("idProveedor").value.trim();
+            const selectProv = document.getElementById("idProveedor");
+            
+            // Captura segura del value del select
+            const idProveedor = selectProv ? selectProv.value.trim() : "";
 
-            if (!nombre || !cantidad || !idProveedor || idProveedor === "") {
-                mostrarError("Debe llenar todos los campos");
+            if (!nombre || !cantidad || !idProveedor || idProveedor === "undefined" || idProveedor === "") {
+                mostrarError("Debe seleccionar un proveedor válido.");
                 return;
             }
 
             const datos = {
-                id_material: id ? id : null,
+                id_material: id !== "" ? id : null,
                 nombre: nombre,
                 cantidad: cantidad,
                 id_proveedor: idProveedor
@@ -169,7 +175,7 @@
 
             fetch(API_MATERIAL, {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(datos)
             })
             .then(response => response.json())
@@ -187,24 +193,27 @@
         }
 
         // 4 Editar material
-        function editarMaterialPorId(id) {
+        async function editarMaterialPorId(id) {
             const material = materialesCargados.find(m => m.id_material == id);
 
             if (material) {
+                // Si el select no tiene opciones cargadas, las carga antes de asignar el valor
+                const select = document.getElementById("idProveedor");
+                if (select && select.options.length <= 1) {
+                    await cargarSelectProveedores();
+                }
+
                 const titulo = document.getElementById("modal-titulo");
                 if (titulo) titulo.innerText = "Editar Material";
 
-                const inputId = document.getElementById("id_material");
-                if (inputId) inputId.value = material.id_material;
+                document.getElementById("id_material").value = material.id_material;
+                document.getElementById("nombre").value = material.nombre || "";
+                document.getElementById("cantidad").value = material.cantidad || "";
 
-                const inputNombre = document.getElementById("nombre");
-                if (inputNombre) inputNombre.value = material.nombre || "";
-
-                const inputCantidad = document.getElementById("cantidad");
-                if (inputCantidad) inputCantidad.value = material.cantidad || "";
-
-                const selectProveedor = document.getElementById("idProveedor");
-                if (selectProveedor) selectProveedor.value = material.id_proveedor || "";
+                // Asignación de la FK
+                if (select) {
+                    select.value = material.id_proveedor || "";
+                }
 
                 abrirModal();
             } else {
@@ -215,7 +224,7 @@
         // 5 Eliminar material DELETE
         function eliminarFila(id) {
             if (confirm("¿Desea eliminar este material?")) {
-                fetch(`${API_MATERIAL}?id=${id}`, {
+                fetch(`${API_MATERIAL}?id_material=${id}`, {
                     method: 'DELETE'
                 })
                 .then(response => response.json())
@@ -232,6 +241,7 @@
         }
 
         function limpiarFormulario() {
+            document.getElementById("id_material").value = "";
             document.getElementById("nombre").value = "";
             document.getElementById("cantidad").value = "";
             document.getElementById("idProveedor").value = "";
@@ -240,6 +250,7 @@
 
         function abrirModal() {
             document.getElementById("modal-materiales").style.display = "block";
+            document.getElementById("overlay").style.display = "block";
         }
 
         function cerrarModal() {
