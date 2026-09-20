@@ -28,7 +28,7 @@
 
     <button onclick="abrirModal()">Agregar proveedor</button>
 
-    <table border="1" widht="100%">
+    <table border="1" width="100%">
         <thead>
             <tr>
                 <th>ID</th>
@@ -108,12 +108,12 @@
                     data.forEach(c => {
                         const fila = document.createElement("tr");
                         fila.innerHTML = `
-                            <td>${c.id_proveedor}</td>
+                            <td>${c.id}</td>
                             <td>${c.nombre}</td>
                             <td>${c.contacto}</td>
                             <td>
-                                <button onclick="cargarParaEditar(${c.id_proveedor})">Editar</button>
-                                <button onclick="eliminarProveedor(${c.id_proveedor})">Eliminar</button>
+                                <button onclick="cargarParaEditar(${c.id})">Editar</button>
+                                <button onclick="eliminarProveedor(${c.id})">Eliminar</button>
                             </td>
                         `;
                         tabla.appendChild(fila);
@@ -172,11 +172,11 @@
         // 3 Cargar datos en modal para editar
         function cargarParaEditar(id) {
             //Buscar el proveedor en la lista de proveedores cargados
-            const proveedor = proveedoresCargados.find(p => p.id_proveedor == id);
+            const proveedor = proveedoresCargados.find(p => p.id == id);
 
         if (proveedor) {
             // Asignamos valores a los inputs
-            if (document.getElementById("idProveedor")) document.getElementById("idProveedor").value = proveedor.id_proveedor;
+            if (document.getElementById("idProveedor")) document.getElementById("idProveedor").value = proveedor.id;
             if (document.getElementById("nombreProveedor")) document.getElementById("nombreProveedor").value = proveedor.nombre;
             if (document.getElementById("contactoProveedor")) document.getElementById("contactoProveedor").value = proveedor.contacto;
             
@@ -206,14 +206,17 @@
         }
 
         function limpiarFormulario() {
-            document.getElementById("idProveedor").value = "";
             document.getElementById("nombreProveedor").value = "";
             document.getElementById("contactoProveedor").value = "";
         }
         
 
         function abrirModal() {
+            limpiarFormulario();
+
+            document.getElementById("modal-titulo").innerText = "Nuevo proveedor";
             document.getElementById("modal-proveedores").style.display = "block";
+            document.getElementById("overlay").style.display = "block";
         }
 
         function cerrarModal() {
