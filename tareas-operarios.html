@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestión de clientes - CarpinSoft</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="top-bar">
+        <div class="btn-menu" onclick="toggleMenu()">MENU</div>
+        <div class="title">CARPINSOFT</div> 
+    </div>
+
+    <div id="overlay" class="overlay" onclick="toggleMenu()"></div>
+
+    <div id="side-menu" class="side-menu">
+        <a href="inicio.html">Inicio</a>
+        <a href="materiales.html">Gestión de materiales</a>
+        <a href="pedidos.html">Gestión de pedidos</a>
+        <a href="clientes.html">Gestión de clientes</a>
+        <a href="proveedores.html">Gestión de proveedores</a>
+        <a href="tareas-operarios.html">Tareas y operarios</a>
+        <a href="reportes.html">Reportes</a>
+        <a href="configuracion.html">Configuración</a>
+    </div>
+
+    <div class="container" style="padding: 20px;">
+        <!-- Sección operarios -->
+        <h2>Gestión de operarios</h2>
+        <button onclick="prepararNuevoOperario()">Agregar Operario</button>
+        <table class="tabla-reportes" border="1" width="100%" style="margin-top: 10px;">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Rol</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="tabla-operarios">
+                <!-- Carga dinámica de operarios -->
+            </tbody>
+        </table>
+
+        <br><hr><br>
+
+        <!-- Sección tareas -->
+        <h2>Gestión de tareas</h2>
+        <button onclick="prepararNuevaTarea()">Asignar Nueva Tarea</button>
+        <table class="tabla-reportes" border="1" width="100%" style="margin-top:10px;">
+            <thead>
+                <tr>
+                    <th>ID Tarea</th>
+                    <th>ID Pedido</th>
+                    <th>Especificación Pedido</th>
+                    <th>Operario Asignado</th>
+                    <th>Descripción Tarea</th>
+                    <th>Estado (Tarea/Pedido)</th>
+                </tr>
+            </thead>
+            <tbody id="tabla-tareas"></tbody>
+        </table>
+    </div>
+
+    <!--Modal registro tarea-->
+    </div id="modal-tarea" class="modal" style="display:none;">
+    <h3 id="modal-tarea-titulo">Asignar Tarea</h3>
+        <input type="hidden" id="id_tarea">
+
+        <label>Seleccionar Pedido:</label>
+        <select id="select_pedido" required></select><br><br>
+
+        <label>Seleccionar Operario:</label>
+        <select id="select_operario" required></select><br><br>
+
+        <label>Descripción de la Tarea:</label>
+        <input type="text" id="tarea_descripcion" required><br><br>
+
+        <label>Estado del Pedido / Tarea:</label>
+        <select id="tarea_estado">
+            <option value="Pendiente">Pendiente</option>
+            <option value="En proceso">En proceso</option>
+            <option value="Terminado">Terminado</option>
+        </select><br><br>
+
+        <button type="button" onclick="guardarTarea()">Guardar Tarea</button>
+        <button type="button" onclick="cerrarModalTarea()">Cancelar</button>
+    </div>
+
+    <script>
+
+        //Menu lateral
+        function toggleMenu() {
+            const menu = document.getElementById("side-menu");
+            const overlay = document.getElementById("overlay");
+
+            if (menu.style.left === "0px") {
+                menu.style.left = "-200px";
+                overlay.style.display = "none";
+            } else {
+                menu.style.left = "0px";
+                overlay.style.display = "block";
+            }
+        }
+        
+        const API_TAREA = 'http://localhost/carpinsoft-api/routes/TareaController.php'; 
+        const API_OPERARIO = 'http://localhost/carpinsoft-api/routes/OperarioController.php';
+        const API_PEDIDO = 'http://localhost/carpinsoft-api/routes/PedidoController.php';
+
+        document.addEventListener('DOMContentLoaded', function() {
+           listarOperarios();
+            listarTareas();
+            cargarCombosPedidosYOperarios();
+        });
+
+        //Cargar operarios
+        function listarOperarios() {
+            fetch(API_OPERARIO)
+                .then(response => response.json())
+                .then(data => {
+                    const tBody = document.getElementById('tabla-operarios');
+                    tBody.innerHTML = "";
+                    data.forEach(operario => {
+                        tBody.innerHTML += `
+                            <tr>
+                                <td>${operario.id_operario}</td>
+                                <td>${operario.nombre}</td>
+                                <td>${operario.rol || 'General'}</td>
+                            </tr>`;
+                    });
+                       
+                });
+        }
+
+        
+    </script>

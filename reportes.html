@@ -28,96 +28,133 @@
     <div class="card-container">
         <div class="card">
             <h3>Clientes registrados</h3>
-            <p>14</p>
+            <p id="total-clientes">0</p>
         </div>
 
         <div class="card">
             <h3>Materiales de inventario</h3>
-            <p>3</p>
+            <p id="total-materiales">0</p>
         </div>
 
         <div class="card">
             <h3>Pedidos</h3>
-            <p>3</p>
+            <p id="total-pedidos">0</p>
+        </div>
+
+        <div class="card">
+            <h3>Proveedores</h3>
+            <p id="total-proveedores">0</p>
         </div>
     </div>
 
     <div class="reporte-section">
         <h2>Inventario Actual</h2>
-        <table class="tabla-reportes">
+        <table class="tabla-reportes" border="1" width="100%">
 
             <thead>
                 <tr>
                     <th>Material</th>
-                    <th>Disponibles</th>
+                    <th>Cantidad</th>
                     <th>Estado</th>
                 </tr>
             </thead>
-
-            <tbody>
-                <tr>
-                    <td>Roble</td>
-                    <td>5</td>
-                    <td class="stock-bajo">Stock Bajo</td>
-                </tr>
-
-                <tr>
-                    <td>Pino</td>
-                    <td>25</td>
-                    <td class="disponible">Disponible</td>
-                </tr>
-
-                <tr>
-                    <td>MDF</td>
-                    <td>3</td>
-                    <td class="stock-bajo">Stock Bajo</td>
-                </tr>
-
+            <tbody id="tabla-inventario">
+                    <!--Carga dinamica de la tabla-->
             </tbody>
         </table>
     </div>
 
     <div class="reporte-section">
         <h2>Estado de Pedidos</h2>
-        <table class="tabla-reportes">
+        <table class="tabla-reportes" border="1" width="100%">
 
             <thead>
                 <tr>
-                    <th>Pedido</th>
+                    <th>ID Pedido</th>
                     <th>Cliente</th>
-                    <th>Producto</th>
+                    <th>Especificación</th>
                     <th>Estado</th>
                 </tr>
             </thead>
 
-            <tbody>
-                <tr>
-                    <td>PED-001</td>
-                    <td>Juan Pérez</td>
-                    <td>Puerta en Roble</td>
-                    <td class="en-proceso">En proceso</td>
-                </tr>
-
-                <tr>
-                    <td>PED-002</td>
-                    <td>Ana López</td>
-                    <td>Closet Moderno</td>
-                    <td class="terminado">Terminado</td>
-                </tr>
-
-                <tr>
-                    <td>PED-003</td>
-                    <td>Carlos Gómez</td>
-                    <td>Mesa de Comedor</td>
-                    <td class="pendiente">Pendiente</td>
-                </tr>
-
+            <tbody id="tabla-pedidos">
+                    <!--Carga dinamica de la tabla-->
             </tbody>
 
         </table>
 
     </div>
     <script>
+        const API_REPORTES = "http://localhost/carpinsoft-api/routes/ReporteController.php";
+
+        document.addEventListener("DOMContentLoaded", () => {
+            cargarReportes();
+        });
+
+        function cargarReportes() {
+            fetch(API_REPORTES)
+                .then(response => response.json())
+                .then(data => {
+                    // 1. Poblar totales de tarjetas
+                    if (data.totales) {
+                        document.getElementById("total-clientes").innerText = data.totales.clientes;
+                        document.getElementById("total-materiales").innerText = data.totales.materiales;
+                        document.getElementById("total-pedidos").innerText = data.totales.pedidos;
+                        document.getElementById("total-proveedores").innerText = data.totales.proveedores;
+                    }
+
+                    // 2. Renderizar tabla de inventario con colores según disponibilidad
+                    const tbodyMat = document.getElementById("tabla-inventario");
+                    tbodyMat.innerHTML = "";
+
+                    if (data.materiales) {
+                        data.materiales.forEach(m => {
+                            const cant = parseInt(m.cantidad);
+                            let estadoTexto = "";
+                            let claseCss = "";
+
+                            // Reglas del semáforo de inventario
+                            if (cant <= 3) {
+                                estadoTexto = "Stock Crítico";
+                                claseCss = "stock-critico";
+                            } else if (cant <= 10) {
+                                estadoTexto = "Stock Bajo";
+                                claseCss = "stock-bajo";
+                            } else {
+                                estadoTexto = "Disponible";
+                                claseCss = "disponible";
+                            }
+
+                            const fila = document.createElement("tr");
+                            fila.innerHTML = `
+                                <td>${m.nombre}</td>
+                                <td>${cant}</td>
+                                <td><span class="${claseCss}">${estadoTexto}</span></td>
+                            `;
+                            tbodyMat.appendChild(fila);
+                        });
+                    }
+
+                    // 3. Renderizar tabla de pedidos
+                    const tbodyPed = document.getElementById("tabla-pedidos");
+                    tbodyPed.innerHTML = "";
+
+                    if (data.pedidos) {
+                        data.pedidos.forEach(p => {
+                            const fila = document.createElement("tr");
+                            fila.innerHTML = `
+                                <td>PED-${p.id_pedido}</td>
+                                <td>${p.cliente}</td>
+                                <td>${p.especificacion}</td>
+                                <td>${p.estado}</td>
+                            `;
+                            tbodyPed.appendChild(fila);
+                        });
+                    }
+                })
+                .catch(err => console.error("Error al cargar reportes:", err));
+        }
+
         function toggleMenu() {
             const menu = document.getElementById("side-menu");
             const overlay = document.getElementById("overlay");
